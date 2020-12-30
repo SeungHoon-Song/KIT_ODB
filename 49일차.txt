@@ -1,0 +1,8 @@
+1. 화면설계
+2. 데이터베이스 설계
+3. 화면 -- 데이터베이스 연결
+4. SQL문을 자바 코드
+5. 예외처리하기
+
+windowActivated - 활성화
+windowDeactivated - 비활성화

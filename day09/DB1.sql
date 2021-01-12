@@ -220,6 +220,9 @@ select num,profno,name,pay,sum(pay),round(avg(pay),1)
     group by ceil(num/3), rollup((profno,name,pay,num))
     order by ceil(num/3);
 
+select num,profno,name,pay,sum(pay),round(avg(pay),1)
+    from(select profno, name, pay, rownum num from professor)
+    group by ceil(num/3), rollup((profno,name,pay,num));
 --ROLLUP 함수
 --ROLLUP에 지정된 Grouping Columns 의 List 는 Subtotal 을 생성하기 위해 사용되어집니다.
 --Grouping Columns 의 수를 N 이라고 했을 때 N + 1 Level 의 Subtotal 이 생성됩니다.
@@ -235,4 +238,84 @@ SELECT dname, job, count(*), sum(sal) from emp, dept
 
 --그룹별로 subtotal을 구할 수 있다. 
 SELECT dname, job, count(*), sum(sal) from emp, dept
-   where dept.deptno = emp.deptno group by rollup(dname, job);   
+   where dept.deptno = emp.deptno group by rollup(dname, job); 
+   
+--문) 부서와 직업별 평균 급여 및 사원 수와 평균 급여와 사원수, 전체 사원의 평균 급여와 사원수를 구하시오
+--풀이1) 각각의 SQL만들고 union all 연결
+--부서별 평균 급여와 사원수
+select deptno, null job, round(avg(sal),1) avg_sal,count(*) cnt_emp
+    from emp group by deptno
+union
+select deptno, job, round(avg(sal),1) avg_sal, count(*) cnt_emp
+    from emp group by deptno, job;
+--부서와 직업별 평균 급여 및 사원 수
+select deptno, job, round(avg(sal),1) avg_sal, count(*) cnt_emp
+    from emp group by deptno, job;
+
+select deptno, null job, round(avg(sal),1) avg_sal,count(*) cnt_emp
+    from emp group by deptno
+union
+select deptno, job, round(avg(sal),1) avg_sal, count(*) cnt_emp
+    from emp group by deptno, job
+union all
+select null deptno, null job, round(avg(sal),1) avg_sal, count(*) cnt_emp
+    from emp order by deptno, job;
+
+--풀이2) rollup 함수를 이용해서
+select deptno, job, round(avg(sal),1) avg_sal, count(*) cnt_emp
+    from emp group by rollup(deptno, job);
+select job,deptno, round(avg(sal),1) avg_sal, count(*) cnt_emp
+    from emp group by rollup(job, deptno);
+    
+--부서별 평균 급여와 사원수
+select deptno, null job, round(avg(sal),1) avg_sal, count(*) cnt_emp
+    from emp group by deptno;
+--직급별 평균 급여와 사원수
+select deptno, job,round(avg(sal),1) avg_sal, count(*) cnt_emp
+    from emp group by job;
+--부서와 직급별 평균 급여와 사원수
+select deptno, job,round(avg(sal),1) avg_sal, count(*) cnt_emp
+    from emp group by deptno,job;
+--전체 평균 급여와 사원수
+select null deptno, null job,round(avg(sal),1) avg_sal, count(*) cnt_emp
+    from emp;
+
+SELECT deptno, null job, round(avg(sal),1)  avg_sal, count(*) cnt_emp FROM emp
+Group by deptno
+union all
+SELECT null deptno, job, round(avg(sal),1)  avg_sal, count(*) cnt_emp FROM emp
+Group by job
+union all
+SELECT deptno, job, round(avg(sal),1)  avg_sal, count(*) cnt_emp FROM emp
+Group by deptno, job
+union all
+SELECT null deptno, null job, round(avg(sal),1)  avg_sal, count(*) cnt_emp FROM emp
+order by deptno, job;  
+
+    
+    
+
+select deptno, job,round(avg(sal),1) avg_sal, count(*) cnt_emp
+    from emp group by cube(deptno,job) order by deptno,job;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

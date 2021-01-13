@@ -1,0 +1,138 @@
+관리자 SYS로 접속
+SHOW USER : 현재 접속한 DB의 사용자명을 보기
+SYS : 모든 권한 권리자
+
+1. 권한 부여
+사용자 만들기 --> 권한있는 사용자가 권한이 없는 사용자에게 권한 부여
+
+2. 사용자 만들기
+위치 : 관리자(SYS, SYSTEM)에서 만들기
+
+3. 사용자로 접속하기
+방법1) WINDOWS > SQLPLUS USERNAME / PASSWORD
+방법2) SQL > CONN USERNAME / PASSWORD;
+
+4. 접속할 권한 부여하기
+주의 : 권한이 있는 사용자가 권한을 주어야 한다.
+GRANT SESSION TABLE TO TESTER1;
+          권한내용	          사용자명
+
+
+문제 TESTER2/2039
+접속 권한 주기
+
+5. 테이블 만들기 권한 주기
+TESTER1한테
+TESTER1으로 접속	: CONN TESTER1/2039;
+테이블 만들기 오류 : CREATE TABLE
+권한 부여 	: 권한을 줄 수 있는 SYS로 접속 : CONN / AS SYSDBA;
+		  권한 부여 받기 : GRANT CREATE TABLE TO TESTER1;
+테이블만들기 오류 없기
+오류 : ORA-01950 : 테이블스페이스가 없어서
+
+alter user tester1 quota 100m on users;
+grant unlimited tablespace to tester1;
+
+6. CREATE VIEW 하기
+권한을 주기
+
+TESTER1에 권한 주기
+SYSDBA로 접속하기
+권한주기
+TESTER1로 접속하기
+CREATE VIEW 명령 주기
+
+7. TESTER2
+TESTER1의 권한을 그대로 주기
+1) SYSDBA에 받아오기
+2) TESTER1에 받아오기
+
+TESTER1이 SYSDBA에 권한을 받을 때 WITH ADMIN OPTION
+붙이면 다른 사용자에게 권한을 줄 수 있다.
+
+실습) TESTER1이 TESTER2권한을 주기 -> 권한 전달 안됨
+실습) SYSDBA가 TESTER1에게 권한을 줄때 WITH ADMIN OPTION
+       권한을 부여 받고 -> TESTER1이 TESTER2권한을 주기 -> 권한 전달 됨
+
+8. 모든 사용자에게 권한을 부여하기
+TESTER1, TESTER2
+SYSDBA가 모든 사용자에게 권한을 부여하기
+
+9. 현재 자신에게 부여 받은 권한의 내용 보기
+SELECT * FROM USER_TAB_PRIVS_RECD;
+SQL> select * from user_role_privs
+[롤 관련 데이터 사전]
+[Dictionary View]                          [Table]
+------------------------               -------------------------------------------------------
+ROLE_SYS_PRIVS                         ROLE에 부여된 시스템 권한
+ROLE_TAB_PRIVS                         ROLE에 부여된 테이블 권한
+USER_ROLE_PRIVS                       현재 사용자가 ACCESS할 수 있는 ROLE
+USER_TAB_PRIVS_MADE               현재 사용자의 객체에 부여한 객체 권한
+USER_TAB_PRIVS_RECD               현재 사용자의 객체에 부여된 객체 권한
+USER_COL_PRIVS_MADE              현재 사용자 객체의 특정 컬럼에 부여한 객체 권한
+USER_COL_PRIVS_RECD               현재 사용자 객체의 특정 컬럼에 부여된 객체 권한
+
+10. TESTER1 - DEPT01 테이블
+TESTER2 - TESTER1의 DEPT01 검색
+1. 권한 부여 받음
+	TESTER1에게 GRANT SELECT ON DEPT01 TO TESTER2;
+2. 검색
+
+스키마란? 객체(테이블, 뷰, 시퀀스 등)를 소유한 사용자명
+보통은 스키마 단어 사용자는 단어를 혼용 사용
+
+해당 스키마명이 가지고 있는 테이블명의 컬럼 검색
+SELECT * FROM 스키마명.테이블명;
+
+스키마명을 생략하면 현재 스키마명으로 검색
+SELECT * FROM 테이블명;
+
+문) TESTER2 삽입하기
+문) TESTER2 삭제하기
+문) TESTER2 UPDATE 하기
+
+11. TESTER3 사용자 만들기 2039
+
+모든권한 가진 SYS에서는
+GRANT, REVOKE 다 됨
+
+TESTER1에서 본인의 객체만 GRANT, REVOKE 됨
+
+TESTER3가 INSERT권한을 TESTER2에게 권한 주기
+
+문) TESTER1 - SELECT, UPDATE -> TESTER2
+	-- SELECT --> TESTER3
+TESTER2의 권한을 SELECT, UPDATE을 받아서
+TESTER3에게 SELECT권한만 넘겨 준다.
+
+GRANT SELECT, UPDATE ON DEPT01 TO TESTER2 WITH GRANT OPTION;
+
+문) 철회하는 권한
+1) TESTER1에서 TESTER3의 권한을 철회하기 ==> 안됨
+2) TESTER2에서 TESTER3의 INSERT권한 철회하기
+
+12. 역할 - ROLE
+DBA의 사전에 정의된 역할 : CONNECT, RESOUCE
+
+문) TESTER5에게 관리자 역할을 부여하기
+grant connect, resource, dba to tester5;
+
+문) 사용자에게 부여된 역할을 확인하기
+select * from dict where table_name like '%ROLE%';
+
+문) 사전정의 있는 역할을 부여하고 역할 확인
+
+13. 관리자가 역할을 해당 부서에 맞게 만들기, 해당 직급에 맞게 만들기
+사용자 정의 역할 내용 만들기
+
+1단계 역할을 만든다.
+CREATE ROLE MROLE;
+2단계 역할에 권한을 부여한다.
+GRANT CREATE SESSION, CREATE TABLE, CREATE VIEW TO MROLE;
+3단계 사용자에게 역할을 부여한다.
+TESTER6에게 역할을 부여한다.
+GRANT MROLE TO TESTER6;
+
+**테이블 만들기 하려면
+ALTER USER TESTER6 QUOTA 100M ON USERS;
+GRANT UNLIMITED TABLESPACE TO TESTER6;
